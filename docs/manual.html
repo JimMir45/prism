@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/prism 使用手册</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3354;
+      --accent: #7c6cfc;
+      --accent-dim: #3d3680;
+      --accent2: #4fc3f7;
+      --green: #4ade80;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --text-dim: #5a6380;
+      --code-bg: #12141e;
+      --inline-code-bg: #1e2235;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 32px 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo .cmd {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-logo .tagline {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      padding: 7px 24px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .sidebar nav a:hover {
+      color: var(--text);
+      background: var(--surface2);
+      border-left-color: var(--accent);
+    }
+
+    .sidebar nav .section-label {
+      padding: 16px 24px 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Main */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      max-width: 860px;
+      padding: 48px 56px 120px;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 40px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      color: #a89ffd;
+      font-size: 11px;
+      font-family: 'SF Mono', monospace;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero h1 {
+      font-size: 38px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+    }
+
+    .hero .lead {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.6;
+    }
+
+    .hero .lead strong {
+      color: var(--text);
+    }
+
+    /* Value props */
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 32px 0 0;
+    }
+
+    .value-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .value-card .icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .value-card h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .value-card p {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Section */
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-anchor {
+      display: block;
+      position: relative;
+      top: -80px;
+      visibility: hidden;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2 .h2-num {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-family: 'SF Mono', monospace;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 24px 0 12px;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 31px;
+      bottom: -10px;
+      width: 2px;
+      height: 10px;
+      background: var(--border);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: var(--accent-dim);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-body h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .step-body p {
+      font-size: 13px;
+      margin-bottom: 0;
+    }
+
+    .callout {
+      background: rgba(124, 108, 252, 0.08);
+      border: 1px solid var(--accent-dim);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #a89ffd;
+      margin-top: 12px;
+    }
+
+    .callout strong {
+      color: #c4b9fe;
+    }
+
+    /* Code blocks */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #c9d1d9;
+    }
+
+    pre .comment { color: #5a6380; }
+    pre .string { color: #7ee787; }
+    pre .keyword { color: var(--accent); }
+    pre .path { color: var(--accent2); }
+    pre .cmd { color: var(--yellow); }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: var(--inline-code-bg);
+      color: var(--accent2);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.88em;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: inherit;
+    }
+
+    /* Code with header */
+    .code-block {
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'SF Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .code-header .dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .code-header .dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .code-block pre {
+      border-radius: 0 0 8px 8px;
+      margin: 0;
+    }
+
+    /* Phase timeline */
+    .phases {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .phase {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .phase-tag {
+      background: var(--surface2);
+      border-right: 1px solid var(--border);
+      padding: 14px 14px;
+      font-family: 'SF Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      width: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .phase-tag .phase-n {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .phase-body {
+      padding: 12px 16px;
+      flex: 1;
+    }
+
+    .phase-body .phase-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .phase-body .phase-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .phase-pause {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    .badge-pause {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      color: var(--yellow);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .badge-go {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* When-to-use table */
+    .use-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+
+    .use-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--surface2);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .use-table th:first-child { border-radius: 8px 0 0 0; }
+    .use-table th:last-child { border-radius: 0 8px 0 0; }
+
+    .use-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .use-table tr:last-child td { border-bottom: none; }
+    .use-table tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+    .use-table tr:last-child td:last-child { border-radius: 0 0 8px 0; }
+
+    .use-table tbody { background: var(--surface); }
+
+    .use-table td:first-child { color: var(--text); }
+
+    .yes { color: var(--green) !important; font-weight: 600; }
+    .no { color: var(--red) !important; }
+
+    /* Example block */
+    .example-container {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    .example-header {
+      background: var(--surface2);
+      padding: 12px 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .example-header .label {
+      font-family: 'SF Mono', monospace;
+      font-weight: 600;
+      color: var(--text);
+      font-size: 11px;
+    }
+
+    .example-body {
+      padding: 0;
+    }
+
+    .msg {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .msg:last-child {
+      border-bottom: none;
+    }
+
+    .msg-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .msg-user .msg-label { color: var(--accent2); }
+    .msg-ai .msg-label { color: var(--accent); }
+    .msg-user { background: rgba(79, 195, 247, 0.04); }
+
+    .msg-content { color: var(--text-muted); line-height: 1.6; }
+    .msg-content strong { color: var(--text); }
+
+    .layer {
+      display: flex;
+      gap: 10px;
+      margin: 6px 0;
+      align-items: flex-start;
+      font-size: 13px;
+    }
+
+    .layer-tag {
+      font-family: 'SF Mono', monospace;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .layer-surface .layer-tag { background: rgba(74,222,128,0.12); color: var(--green); }
+    .layer-hidden .layer-tag { background: rgba(251,191,36,0.12); color: var(--yellow); }
+    .layer-deep .layer-tag { background: rgba(124,108,252,0.15); color: var(--accent); }
+
+    .user-reply {
+      background: rgba(74, 222, 128, 0.06);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--green);
+      margin: 8px 0;
+      font-style: italic;
+    }
+
+    /* Recovery box */
+    .recovery-box {
+      background: rgba(124, 108, 252, 0.06);
+      border: 1px solid var(--accent-dim);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: 'SF Mono', monospace;
+      font-size: 13px;
+      color: #a89ffd;
+      margin: 16px 0;
+      line-height: 1.7;
+    }
+
+    /* FAQ */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .faq-q {
+      padding: 16px 20px;
+      background: var(--surface);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .faq-q::before {
+      content: 'Q';
+      color: var(--accent);
+      font-family: 'SF Mono', monospace;
+      font-size: 11px;
+      background: var(--accent-dim);
+      padding: 2px 6px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .faq-a {
+      padding: 14px 20px 16px;
+      background: var(--surface2);
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* Irreversible ops */
+    .ops-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .op-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      color: var(--red);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .op-item::before {
+      content: '⛔';
+      font-size: 14px;
+    }
+
+    /* File tree */
+    .file-tree {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'SF Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text-muted);
+    }
+
+    .file-tree .dir { color: var(--accent2); }
+    .file-tree .file { color: var(--text); }
+    .file-tree .required { color: var(--accent); font-weight: 600; }
+    .file-tree .optional { color: var(--text-muted); }
+    .file-tree .tag {
+      font-size: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+      font-weight: 600;
+    }
+    .file-tree .tag-must { color: var(--accent); border-color: var(--accent-dim); background: rgba(124,108,252,0.1); }
+    .file-tree .tag-opt { color: var(--text-dim); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 32px 24px 80px; }
+      .value-grid { grid-template-columns: 1fr; }
+      .ops-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="cmd">/prism</div>
+      <div class="tagline">Claude Code 意图澄清器</div>
+    </div>
+    <nav>
+      <div class="section-label">开始</div>
+      <a href="#intro">这是什么</a>
+      <a href="#install">安装</a>
+      <a href="#usage">用法</a>
+
+      <div class="section-label">原理</div>
+      <a href="#phases">7 个 Phase</a>
+      <a href="#example">真实示例</a>
+      <a href="#recovery">Compact 恢复</a>
+
+      <div class="section-label">配置</div>
+      <a href="#faq">常见问题</a>
+      <a href="#skill-content">Skill 文件</a>
+      <a href="#rule-content">auto-execute 规则</a>
+      <a href="#user-context">user-context（可选）</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">Claude Code · Skill</div>
+      <h1><span>/prism</span> 使用手册</h1>
+      <p class="lead">
+        让 AI 在动手之前先想清楚。<br>
+        <strong>先讨论清楚再动手，比干完了再返工节省十倍时间。</strong>
+      </p>
+
+      <div class="value-grid">
+        <div class="value-card">
+          <div class="icon">🎯</div>
+          <h3>防止方向跑偏</h3>
+          <p>AI 误解意图导致的返工是最大浪费，/prism 在执行前强制对齐</p>
+        </div>
+        <div class="value-card">
+          <div class="icon">💾</div>
+          <h3>防止上下文丢失</h3>
+          <p>长任务被 compact 截断时，从 active-plan.md 自动恢复继续</p>
+        </div>
+        <div class="value-card">
+          <div class="icon">🔐</div>
+          <h3>防止决策遗忘</h3>
+          <p>关键决策点暂停等确认，不可逆操作永远不擅自执行</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 这是什么 -->
+    <div class="section">
+      <span class="section-anchor" id="intro"></span>
+      <h2>这是什么</h2>
+      <p>
+        <code>/prism</code> 是一个 Claude Code slash command（skill），在你给 AI 布置任务之前，强制做一次<strong>意图透视</strong>——确认你真正想要的是什么，而不是字面上说的是什么，然后生成一份结构化执行计划持久化到文件。
+      </p>
+      <p>
+        它解决的核心问题是：<strong>你说的 ≠ 你想的，AI 理解的 ≠ 你说的</strong>。这两层偏差叠加，导致大量无效工作。
+      </p>
+    </div>
+
+    <!-- 安装 -->
+    <div class="section">
+      <span class="section-anchor" id="install"></span>
+      <h2>安装</h2>
+
+      <p>需要创建两个文件。安装后无需重启，Claude Code 自动加载。</p>
+
+      <div class="file-tree">
+        <span class="dir">~/.claude/</span><br>
+        &nbsp;&nbsp;<span class="dir">skills/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">prism/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file required">SKILL.md</span><span class="tag tag-must">必须</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← skill 主文件</span><br>
+        &nbsp;&nbsp;<span class="dir">rules/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file required">auto-execute.md</span><span class="tag tag-must">必须</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← compact 恢复 + 执行规范</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file optional">user-context.md</span><span class="tag tag-opt">可选</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← 你的画像，让建议更精准</span>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>创建 skill 目录并写入文件</h4>
+            <p>新建目录，然后将文末 <a href="#skill-content" style="color:var(--accent)">Skill 完整内容</a> 复制进去。</p>
+            <pre><span class="cmd">mkdir -p</span> ~/.claude/skills/prism
+<span class="comment"># 然后将文末 Skill 内容写入：</span>
+~/.claude/skills/prism/SKILL.md</pre>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>安装配套规则（关键，不能省）</h4>
+            <p>rules 目录下的 .md 文件会被 Claude Code 自动加载为行为规范。这个规则让 compact 后恢复生效，并定义执行期间的中断逻辑。</p>
+            <pre><span class="cmd">mkdir -p</span> ~/.claude/rules
+<span class="comment"># 将文末 auto-execute 内容写入：</span>
+~/.claude/rules/auto-execute.md</pre>
+            <div class="callout">
+              <strong>为什么这个规则不能省？</strong> Skill 文件只是一段对话 prompt，每次调用才生效。规则文件每次 Claude Code 启动时自动加载，这样 compact 后新对话才能检测到未完成计划并恢复执行。
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>（可选）添加伙伴画像</h4>
+            <p>Phase 3 的审查维度会根据你的技术背景定制。参考文末 <a href="#user-context" style="color:var(--accent)">user-context 格式</a>。</p>
+            <pre>~/.claude/rules/user-context.md</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用法 -->
+    <div class="section">
+      <span class="section-anchor" id="usage"></span>
+      <h2>用法</h2>
+
+      <h3>基础用法</h3>
+      <pre>/prism 帮我给项目加一个用户认证模块
+/prism 我要重构这个推荐算法，从协同过滤换成向量召回
+/prism 把现有的单体服务拆成微服务架构</pre>
+
+      <h3>何时用 / 不用</h3>
+      <table class="use-table">
+        <thead>
+          <tr>
+            <th>场景</th>
+            <th>建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>需要改多个文件的功能开发</td><td class="yes">✅ 必用</td></tr>
+          <tr><td>架构设计、技术方案讨论</td><td class="yes">✅ 必用</td></tr>
+          <tr><td>有多个步骤的重构任务</td><td class="yes">✅ 必用</td></tr>
+          <tr><td>查询一个问题、解释代码</td><td class="no">❌ 直接问，/prism 会走快速通道</td></tr>
+          <tr><td>单文件小改动</td><td class="no">❌ 不需要</td></tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:13px">
+        <strong>内置快速通道：</strong>如果你的请求是只读查询或无副作用操作，/prism 会直接回答并说"意图清晰，直接执行"，不走完整流程，不影响轻量使用。
+      </p>
+    </div>
+
+    <!-- Phases -->
+    <div class="section">
+      <span class="section-anchor" id="phases"></span>
+      <h2>工作原理：7 个 Phase</h2>
+
+      <div class="phases">
+        <div class="phase">
+          <div class="phase-tag"><span class="phase-n">Phase</span>1</div>
+          <div class="phase-body">
+            <div class="phase-name">意图透视</div>
+            <div class="phase-desc">表层（说了什么）→ 暗层（没说的假设）→ 深层（真正目标）。有歧义时给 A/B 选项，不替你选。</div>
+          </div>
+          <div class="phase-pause"><span class="badge-go">自动</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-tag"><span class="phase-n">Phase</span>2</div>
+          <div class="phase-body">
+            <div class="phase-name">盲区提示</div>
+            <div class="phase-desc">指出你可能没想到的大象——一两句话，不展开。</div>
+          </div>
+          <div class="phase-pause"><span class="badge-go">自动</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-tag"><span class="phase-n">Phase</span>3</div>
+          <div class="phase-body">
+            <div class="phase-name">任务定义</div>
+            <div class="phase-desc">一句话任务 + 成功标准 + 2-4 个互有张力的审查维度。<strong>等你确认再继续。</strong></div>
+          </div>
+          <div class="phase-pause"><span class="badge-pause">等确认</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-tag"><span class="phase-n">Phase</span>4</div>
+          <div class="phase-body">
+            <div class="phase-name">计划持久化</div>
+            <div class="phase-desc">写入 <code>{项目根}/.claude/active-plan.md</code>。首次检查 .gitignore。<strong>等你说"开始"。</strong></div>
+          </div>
+          <div class="phase-pause"><span class="badge-pause">等开始</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-tag"><span class="phase-n">Phase</span>5</div>
+          <div class="phase-body">
+            <div class="phase-name">自主执行</div>
+            <div class="phase-desc">逐步执行，完成一步更新日志，直接进下一步。<strong>非决策步骤不中断不汇报。</strong>遇决策点才暂停。</div>
+          </div>
+          <div class="phase-pause"><span class="badge-go">不中断</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-tag"><span class="phase-n">Phase</span>6</div>
+          <div class="phase-body">
+            <div class="phase-name">对抗审查</div>
+            <div class="phase-desc">仅复杂任务（步骤≥3 或多文件修改）触发。按张力维度并行 subagent 审查，有问题自动修一轮，二审仍有问题暂停等决策。</div>
+          </div>
+          <div class="phase-pause"><span class="badge-go">按需</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-tag"><span class="phase-n">Phase</span>7</div>
+          <div class="phase-body">
+            <div class="phase-name">交付</div>
+            <div class="phase-desc">输出摘要，<strong>删除 active-plan.md</strong>（git commit 本身就是归档）。</div>
+          </div>
+          <div class="phase-pause"><span class="badge-go">完成</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 真实示例 -->
+    <div class="section">
+      <span class="section-anchor" id="example"></span>
+      <h2>真实使用示例</h2>
+      <p style="font-size:13px;color:var(--text-muted)">以下三个场景来自真实项目，覆盖功能开发、架构重构、技术选型三种典型情况，已脱敏整理。</p>
+
+      <!-- 场景标签 -->
+      <div style="display:flex;gap:8px;margin:16px 0 24px;flex-wrap:wrap">
+        <a href="#ex1" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--text-muted);text-decoration:none;font-family:'SF Mono',monospace">
+          <span style="color:var(--accent)">#1</span> 架构规划
+        </a>
+        <a href="#ex2" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--text-muted);text-decoration:none;font-family:'SF Mono',monospace">
+          <span style="color:var(--accent)">#2</span> 功能开发
+        </a>
+        <a href="#ex3" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:12px;color:var(--text-muted);text-decoration:none;font-family:'SF Mono',monospace">
+          <span style="color:var(--accent)">#3</span> 重构 / 去重
+        </a>
+      </div>
+
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:8px" id="ex1">场景 1 / 3 — 架构规划：意图透视识别出"整理文档"背后是"验证假设"</p>
+
+      <div class="example-container">
+        <div class="example-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span class="label">Claude Code — instinct 项目</span>
+        </div>
+        <div class="example-body">
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content">
+              <code>/prism</code> 帮我把 instinct 项目的设计文档整理一下，推导出 Phase 1 的执行计划
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 1 — 意图透视</div>
+            <div class="msg-content">
+              <div class="layer layer-surface">
+                <span class="layer-tag">表层</span>
+                <span>整理设计文档，产出执行计划</span>
+              </div>
+              <div class="layer layer-hidden">
+                <span class="layer-tag">暗层</span>
+                <span>你之前有一版 v1 设计被否定了（Stop Hook 信号噪声问题），现在需要一个基于 v2 思路的可行计划，而不是"整理文档"本身</span>
+              </div>
+              <div class="layer layer-deep">
+                <span class="layer-tag">深层</span>
+                <span>在正式投入开发之前，验证 v2 的核心假设是否值得做——这是一个 <strong>validation 任务</strong>，不是 planning 任务</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 2 — 盲区</div>
+            <div class="msg-content">
+              你说"执行计划"，但还没确认验证周期和成功标准。<strong>没有基线就无法知道 6 周后是否"成功"。</strong>
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 3 — 任务定义（等你确认）</div>
+            <div class="msg-content">
+              <p><strong>一句话任务：</strong>设计 instinct Phase 1 的 6 周验证计划，核心假设是"结构化判断 Review 是有效学习信号"</p>
+              <p style="margin-top:10px"><strong>成功标准：</strong>6 周内 ≥20 条 confirmed Experience，≥3 条 Cognition Pattern，Review 时间 ≤5min/天</p>
+              <p style="margin-top:10px"><strong>审查维度（互有张力）：</strong></p>
+              <ul style="margin:6px 0 0 16px;font-size:13px;color:var(--text-muted);line-height:1.8">
+                <li><strong>可行性 vs 完整性</strong>：计划够简单才能坚持，但太简单就失去验证价值</li>
+                <li><strong>工程投入 vs 假设验证</strong>：Phase 1 应最小化工程，但基础设施不够会导致验证失效</li>
+              </ul>
+              <p style="margin-top:12px">是否按此方向继续？</p>
+            </div>
+          </div>
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content">
+              <div class="user-reply">"对，就这个，需要我决策的 4 项按你的建议来就行，建议质量高，值得采纳。"</div>
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 4 — 写入 active-plan.md</div>
+            <div class="msg-content">
+              <pre style="margin:0;font-size:12px"># Active Plan
+> 由 /prism 生成 | compact 后读取此文件恢复执行
+> created_at: 2026-04-10T03:13:00Z
+
+## 任务
+设计 instinct Phase 1 的 6 周假设验证计划
+
+## 成功标准
+≥20 条 confirmed Experience，≥3 条 Cognition Pattern，Review 时间 ≤5min/天
+
+## 执行步骤
+- [ ] 步骤1：分析现有设计文档，提炼 v2 核心架构
+- [ ] 步骤2：设计 Week 1-2 任务清单（数据层 + Judgment Logger）
+- [ ] 步骤3：设计 Week 3-4 任务清单（Review 界面 + Dashboard）
+- [ ] 步骤4：设计 Week 5-6 验证循环
+- [ ] 步骤5：确定 4 个待决策项的建议方案
+- [ ] 🔍 对抗审查
+- [ ] 交付最终计划文档
+
+## 执行日志
+（执行中追加）</pre>
+              <p style="margin-top:14px">计划已写入，确认开始执行？</p>
+            </div>
+          </div>
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content"><div class="user-reply">"开始"</div></div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 5-7 — 自主执行完毕</div>
+            <div class="msg-content">
+              <p>已完成 7 步执行，交付 6 周完整验证计划，包含每周任务清单、验收标准、关键决策记录。active-plan.md 已删除。</p>
+              <div class="user-reply" style="color:var(--green);background:rgba(74,222,128,0.06);border-color:rgba(74,222,128,0.2)">
+                用户事后评价："这次明显比之前规划的要靠谱得多，可深度可行。"
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 场景 2 -->
+      <p style="font-size:12px;color:var(--text-dim);margin:32px 0 8px" id="ex2">场景 2 / 3 — 功能开发：A/B 歧义澄清，防止做了一半才发现方向不对</p>
+
+      <div class="example-container">
+        <div class="example-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span class="label">Claude Code — recommendation-algorithm 项目</span>
+        </div>
+        <div class="example-body">
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content">
+              <code>/prism</code> 给推荐系统加个向量召回通道
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 1 — 意图透视</div>
+            <div class="msg-content">
+              <div class="layer layer-surface">
+                <span class="layer-tag">表层</span>
+                <span>新增向量召回通道</span>
+              </div>
+              <div class="layer layer-hidden">
+                <span class="layer-tag">暗层</span>
+                <span>现有协同过滤在冷启动和长尾场景效果差，向量召回是常见补丁——但你没说要替换还是并联</span>
+              </div>
+              <div class="layer layer-deep">
+                <span class="layer-tag">深层</span>
+                <span>目标是<strong>多样性</strong>（并联召回，两路结果融合）还是<strong>准确率</strong>（向量替换协同过滤，走全量重排）？两条路实现成本和效果取向完全不同</span>
+              </div>
+              <br>
+              <p style="margin-top:4px"><strong>存在歧义，给两个方向：</strong></p>
+              <ul style="margin:8px 0 0 16px;font-size:13px;color:var(--text-muted);line-height:2">
+                <li><strong>A — 补充召回</strong>：保留协同过滤，新增向量通道，两路融合后重排。目标：提升长尾和冷启动覆盖率</li>
+                <li><strong>B — 替换召回</strong>：向量召回取代协同过滤，走统一重排管线。目标：从根本上提升相似度建模能力</li>
+              </ul>
+              <p style="margin-top:10px">你是哪个方向？</p>
+            </div>
+          </div>
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content">
+              <div class="user-reply">"A，先并联，保留协同过滤兜底"</div>
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 2 — 盲区</div>
+            <div class="msg-content">
+              向量模型选哪个？用离线预训练的 item2vec 还是调用现有 embedding 服务？这个决定影响工程量差一倍，需要在 Phase 3 锁定。
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 3 — 任务定义（等你确认）</div>
+            <div class="msg-content">
+              <p><strong>一句话任务：</strong>在现有协同过滤旁并联向量召回通道，融合结果输入重排层，使用已有 embedding 服务（避免引入新模型依赖）</p>
+              <p style="margin-top:10px"><strong>成功标准：</strong>AB 实验中，向量通道命中率比纯协同过滤提升 ≥10%，P99 召回延迟 ≤50ms</p>
+              <p style="margin-top:10px"><strong>审查维度（互有张力）：</strong></p>
+              <ul style="margin:6px 0 0 16px;font-size:13px;color:var(--text-muted);line-height:1.8">
+                <li><strong>召回质量 vs 工程侵入性</strong>：融合策略越精细效果越好，但对现有管线改动越大风险越高</li>
+                <li><strong>延迟预算 vs 召回数量</strong>：多召回候选集提升重排质量，但向量检索耗时直接影响整体 RT</li>
+              </ul>
+              <p style="margin-top:12px">是否按此方向继续？</p>
+            </div>
+          </div>
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content"><div class="user-reply">"是的，开始"</div></div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 4-7 — 执行完毕</div>
+            <div class="msg-content">
+              <p>完成：向量召回模块、融合层、延迟监控点，共修改 4 个文件。对抗审查发现融合权重硬编码问题，已修改为配置项。active-plan.md 已删除。</p>
+              <p style="margin-top:8px;font-size:12px;color:var(--text-dim)">↑ 如果没有 Phase 1 的 A/B 澄清，"加向量召回"极大概率被理解成替换方向，重构完才发现用错了。</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 场景 3 -->
+      <p style="font-size:12px;color:var(--text-dim);margin:32px 0 8px" id="ex3">场景 3 / 3 — 重构/去重：盲区识别救场，防止重构引发线上问题</p>
+
+      <div class="example-container">
+        <div class="example-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span class="label">Claude Code — car-ktv 项目</span>
+        </div>
+        <div class="example-body">
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content">
+              <code>/prism</code> 歌曲数据里有大量重复条目，帮我做个去重，把重复的合并掉
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 1 — 意图透视</div>
+            <div class="msg-content">
+              <div class="layer layer-surface">
+                <span class="layer-tag">表层</span>
+                <span>对歌曲数据库去重，合并重复条目</span>
+              </div>
+              <div class="layer layer-hidden">
+                <span class="layer-tag">暗层</span>
+                <span>"重复"的判断标准没定义——同名同艺人算重复？还是要做音频指纹级别的精确去重？</span>
+              </div>
+              <div class="layer layer-deep">
+                <span class="layer-tag">深层</span>
+                <span>数据质量问题导致推荐和搜索出现重复结果影响体验，去重是手段，核心是<strong>保证下游系统数据干净</strong>，而不是删记录本身</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 2 — 盲区</div>
+            <div class="msg-content">
+              <strong>这是不可逆操作。</strong>合并/删除数据库记录后无法自动回滚。在执行前需要确认：① 有没有其他表通过 song_id 做外键关联？② 合并策略是保留哪条（播放量最高？入库时间最早？）③ 有没有数据备份或 dry-run 阶段？
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 3 — 任务定义（等你确认）</div>
+            <div class="msg-content">
+              <p><strong>一句话任务：</strong>对歌曲表按（歌名 + 艺人名）做精确去重，保留播放量最高的主记录，其余记录标记 deleted 而非物理删除，关联表 song_id 统一更新到主记录</p>
+              <p style="margin-top:10px"><strong>成功标准：</strong>去重后重复率 &lt;0.1%，关联表无悬空引用，有完整的变更日志可审计和回滚</p>
+              <p style="margin-top:10px"><strong>审查维度（互有张力）：</strong></p>
+              <ul style="margin:6px 0 0 16px;font-size:13px;color:var(--text-muted);line-height:1.8">
+                <li><strong>安全性 vs 彻底性</strong>：软删除（标记）更安全但数据仍存在；物理删除更干净但无法回滚</li>
+                <li><strong>自动化 vs 人工审核</strong>：规则去重快但边界案例会误判；逐条审核准但数据量大时不现实</li>
+              </ul>
+              <p style="margin-top:10px"><strong>决策点（将在执行中暂停等确认）：</strong></p>
+              <ul style="margin:6px 0 0 16px;font-size:13px;color:var(--text-muted);line-height:1.8">
+                <li>步骤 1 之后：展示去重预览（影响记录数 / 关联表变更量），确认再执行</li>
+                <li>批量 UPDATE 前：属于不可逆操作，一律暂停</li>
+              </ul>
+              <p style="margin-top:12px">是否按此方向继续？</p>
+            </div>
+          </div>
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content">
+              <div class="user-reply">"可以，软删除方向，先给我看预览再动"</div>
+            </div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · Phase 4 写入计划，Phase 5 执行至决策点暂停</div>
+            <div class="msg-content">
+              <p>步骤 1 完成，去重预览：</p>
+              <pre style="margin:10px 0;font-size:12px">发现重复组：1,847 组
+受影响记录：3,291 条（将被标记 deleted）
+主记录保留：1,847 条
+关联 playlist_songs 需更新：12,034 行
+关联 play_history 需更新：89,421 行
+
+高置信度（精确匹配）：3,180 条  ← 自动处理
+低置信度（仅歌名匹配）：111 条   ← 建议人工确认</pre>
+              <p>⏸ <strong>决策点：确认继续执行批量 UPDATE？</strong>（不可逆操作，确认后无法撤销）</p>
+            </div>
+          </div>
+
+          <div class="msg msg-user">
+            <div class="msg-label">用户</div>
+            <div class="msg-content"><div class="user-reply">"低置信度的跳过，只处理高置信度，继续"</div></div>
+          </div>
+
+          <div class="msg msg-ai">
+            <div class="msg-label">Claude · 继续执行完毕</div>
+            <div class="msg-content">
+              <p>高置信度去重完成，3,180 条记录软删除，关联表全部更新，变更日志写入 <code>dedup_log_20260410.json</code>。</p>
+              <p style="margin-top:8px;font-size:12px;color:var(--text-dim)">↑ Phase 2 的盲区提示让"先看预览"成为必经步骤。如果直接执行，89k 行 play_history 的错误更新在线上很难察觉。</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Compact 恢复 -->
+    <div class="section">
+      <span class="section-anchor" id="recovery"></span>
+      <h2>Compact 恢复</h2>
+      <p>
+        当对话被 compact（上下文压缩）后，下次打开 Claude Code 时会自动检测并提示：
+      </p>
+      <div class="recovery-box">
+        检测到未完成计划：设计 instinct Phase 1 的 6 周假设验证计划，<br>
+        创建于 2026-04-10T03:13:00Z，3/7 步已完成，即将从步骤 4 继续。<br>
+        确认继续？
+      </div>
+      <p>输入任意内容即可从断点恢复执行，不需要重新解释任务背景。</p>
+      <p>
+        多项目并行工作时，每个项目维护独立的 <code>{项目根}/.claude/active-plan.md</code>，互不干扰。
+      </p>
+
+      <h3>项目 .gitignore 配置</h3>
+      <p>/prism 首次创建计划时会自动检查，如果 <code>.claude/</code> 没有加入 .gitignore 会提醒你。手动配置：</p>
+      <pre># .gitignore
+.claude/</pre>
+    </div>
+
+    <!-- FAQ -->
+    <div class="section">
+      <span class="section-anchor" id="faq"></span>
+      <h2>常见问题</h2>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">每个任务都要用 /prism 吗？会不会很繁琐？</div>
+          <div class="faq-a">不用。/prism 内置"快速通道"——如果你的请求是查询、只读问题、或无副作用操作，它会直接回答并说"意图清晰，直接执行"，不走完整流程。你不需要判断什么时候该用快速通道，/prism 自己判断。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Phase 3 的"审查维度"是什么？</div>
+          <div class="faq-a">是 Claude 主动提出的 2-4 个评审角度，它们之间是刻意有张力的——让这些视角互相制衡，避免单一视角的盲点。比如"速度 vs 正确性"、"工程完整性 vs 验证最小化"。如果维度之间没有张力，就是失效的审查维度。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">active-plan.md 执行完会自动删除吗？</div>
+          <div class="faq-a">是的，Phase 7 交付时删除。历史通过 git commit 归档，不需要保留计划文件。如果中途放弃任务，手动删除该文件即可。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">哪些操作会强制暂停等确认？</div>
+          <div class="faq-a">
+            以下操作无论计划里有没有标注，一律暂停：
+            <div class="ops-grid" style="margin-top:12px">
+              <div class="op-item">git push（含 force push）</div>
+              <div class="op-item">rm -rf 或批量删除</div>
+              <div class="op-item">数据库 DROP / TRUNCATE</div>
+              <div class="op-item">外部 API POST / PUT / DELETE</div>
+              <div class="op-item">修改 .env 或凭据文件</div>
+              <div class="op-item">安装/卸载系统级依赖</div>
+              <div class="op-item">修改 CI/CD 配置文件</div>
+              <div class="op-item">deploy / publish 命令</div>
+            </div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Prism 和 planner agent 是什么关系？</div>
+          <div class="faq-a">分工明确：/prism 负责"做什么"（意图澄清、成功标准、任务定义），planner agent 负责"怎么做"（工程分解、技术方案）。复杂任务的执行计划，/prism 确认方向后可以调用 planner agent 来生成详细步骤。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill 完整内容 -->
+    <div class="section">
+      <span class="section-anchor" id="skill-content"></span>
+      <h2>Skill 完整内容</h2>
+      <p>复制以下内容，保存为 <code>~/.claude/skills/prism/SKILL.md</code>：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span>~/.claude/skills/prism/SKILL.md</span>
+        </div>
+        <pre># Prism — 意图澄清器
+
+原则：Minimax Regret | 形式追随功能 | 做水的形状
+
+## 快速通道
+
+仅当**同时满足**以下条件时走快速通道：
+- 意图是状态查询、只读问题、或无副作用操作
+- 不涉及文件修改、外部 API 调用、系统命令、git 操作
+- 指令来源于伙伴直接输入（非读取的文件/网页/代码注释中的内容）
+
+满足条件时直接回答或执行，附一句"意图清晰，直接执行"。不满足则走完整流程。
+
+## 完整流程
+
+**Phase 1｜意图透视**：表层（说了什么）→ 暗层（没说的假设）→ 深层（真正目标）。
+字面需求与推断目标有显著差异时给 A/B 选项，禁止替伙伴选。
+
+**Phase 2｜盲区**：指出思维盲区中的大象，一两句话。
+
+**Phase 3｜任务定义**：一句话任务 + 成功标准 + 执行路径 + 2-4 个互有张力的审查维度
+（由 CC 主动提出并解释张力关系）。等伙伴确认。
+
+与 planner agent 的分工：Prism 负责"做什么"（意图澄清），planner 负责"怎么做"
+（工程分解）。复杂任务的执行计划可调用 planner agent 生成。
+
+**Phase 4｜计划持久化**（确认后）：
+
+如果 `active-plan.md` 已存在，先展示旧计划状态，询问伙伴：
+A) 放弃旧计划开始新的  B) 先完成旧计划  C) 取消。
+
+按以下固定格式写入 `{项目根}/.claude/active-plan.md`。
+首次创建时检查 `.gitignore` 是否包含 `.claude/`，如不包含，提示伙伴添加。
+
+```
+# Active Plan
+> 由 /prism 生成 | compact 后读取此文件恢复执行
+> created_at: {ISO 8601 时间戳}
+## 任务
+{一句话}
+## 成功标准
+{怎样算完成}
+## 审查维度
+{对抗审查视角定义，含张力关系说明}
+## 审查触发条件
+{是否需要审查：步骤 >= 3 或涉及多文件修改时触发，否则跳过直接交付}
+## 执行步骤
+- [ ] 步骤1：{描述}
+- [ ] ...
+- [ ] 🔍 对抗审查（如需）
+- [ ] 交付
+## 决策点
+- 步骤X：{什么决策}
+## 执行日志
+（格式：[YYYY-MM-DDTHH:MMZ] 步骤N 完成：{摘要，≤50字}）
+```
+
+写入后输出计划摘要，等伙伴确认"开始"后进入执行。
+
+**Phase 5｜自主执行**：按计划逐步执行，用 TodoWrite 跟踪步骤进度。
+每完成一步更新 active-plan.md 执行日志。非决策步骤不停顿不汇报。遇决策点才暂停。
+
+**Phase 6｜对抗审查**（仅在计划标记"需要审查"时触发）：
+
+按 Phase 3 定义的审查维度启动并行 subagent 审查。维度互有张力。
+- 无 CRITICAL/HIGH → 通过，进入交付
+- 有 CRITICAL/HIGH → 自动修复一轮（修复范围限于计划原始涉及的文件，
+  不引入新依赖，不创建计划外新文件）
+- 二审仍有 CRITICAL/HIGH → 暂停，列出问题，等伙伴决策，不再自动修复
+
+**Phase 7｜交付**：输出摘要，删除 active-plan.md（git commit 本身就是归档）。
+
+## 约束
+- Phase 5 不中断：非决策步骤直接干
+- 审查维度必须互有张力
+- 伙伴画像由 `~/.claude/rules/user-context.md` 自动提供</pre>
+      </div>
+    </div>
+
+    <!-- auto-execute 完整内容 -->
+    <div class="section">
+      <span class="section-anchor" id="rule-content"></span>
+      <h2>auto-execute 规则完整内容</h2>
+      <p>复制以下内容，保存为 <code>~/.claude/rules/auto-execute.md</code>：</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span>~/.claude/rules/auto-execute.md</span>
+        </div>
+        <pre># 自主执行规则
+
+## Compact 后恢复
+
+当对话经历 compact（自动或手动）后，**立即检查**当前项目是否存在 `.claude/active-plan.md`。
+
+如果存在且有未完成步骤（未勾选的 `- [ ]`）：
+1. 读取该文件
+2. 输出一行恢复提示：
+   "检测到未完成计划：{任务一句话}，创建于 {created_at}，
+   {N}/{总数} 步已完成，即将从步骤 {下一步编号} 继续"
+3. **等待伙伴确认后才继续执行**（输入任意内容即视为确认）
+4. 超过 24 小时未更新的计划文件，提示伙伴：
+   "此计划已超过 24 小时未更新，建议重新确认整个计划"
+
+如果不存在或所有步骤已完成：正常交互，不做特殊处理。
+
+如果伙伴的第一条消息是一个明确的新任务指令（与旧计划无关）：
+先处理新任务，之后提示"存在未完成的旧计划，是否继续/放弃？"
+
+## 执行期间行为
+
+当 `.claude/active-plan.md` 存在且有未完成步骤时：
+- **不要在每一步完成后停下来汇报等待确认**
+- 每完成一步，更新计划文件（勾选 + 追加执行日志），然后直接进入下一步
+- 仅在以下情况暂停：
+  - 遇到计划中标记的决策点
+  - 遇到无法自行解决的错误（重试 1 次仍失败；
+    重试前确认操作是否幂等，非幂等操作首次失败即暂停，不重试）
+  - 遇到下方"不可逆操作清单"中的操作
+
+## 不可逆操作清单（无论是否标记为决策点，一律暂停等确认）
+
+- `git push`（含 force push）
+- `rm -rf` 或批量删除文件/目录
+- 数据库 `DROP` / `TRUNCATE` / 批量 `DELETE`
+- 外部 API 的 `POST` / `PUT` / `DELETE` 调用
+- 修改 `.env` 或包含凭据/密钥的文件
+- 安装或卸载系统级依赖
+- 修改 CI/CD 配置文件
+- 部署命令（deploy、publish）
+
+## 计划文件规范
+
+- 路径：`{项目根}/.claude/active-plan.md`（项目级，多项目并行互不干扰）
+- 由 `/prism` skill 的 Phase 4 创建
+- 执行完毕后删除（git commit 本身就是归档）
+- 同一项目同一时间只允许一个 active-plan
+- `.claude/` 目录应加入 `.gitignore`</pre>
+      </div>
+    </div>
+
+    <!-- user-context -->
+    <div class="section">
+      <span class="section-anchor" id="user-context"></span>
+      <h2>user-context.md（可选）</h2>
+      <p>
+        /prism 的 Phase 3 审查维度设计会参考你的伙伴画像，让 Claude 根据你的背景给出更贴合的建议。这是可选的，但能让输出更精准。
+      </p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span>~/.claude/rules/user-context.md（格式参考）</span>
+        </div>
+        <pre># 伙伴画像
+
+## 基本信息
+- 角色：全栈工程师 / AI 应用开发
+- 技术背景：Python 10年，Go 3年，擅长大模型应用架构
+- 工作重心：AI Native 开发，Agent / RAG / Multi-Agent / MCP
+
+## AI Native 工作底色
+- 能用 AI 解决的，不手写规则
+- 能用 MCP/Tool 对接的，不造轮子
+- 能 Vibe Coding 快速验证的，不过度设计
+- 能 Agent 自主完成的，不人工介入
+
+## 协作偏好
+- 先讨论清楚再动手
+- 有架构视角，方案讨论时考虑可扩展性和工程落地
+- 倾向于实战验证而非理论分析
+- 产品思维强，关注"为什么做"不仅是"怎么做"</pre>
+      </div>
+
+      <p style="font-size:13px;margin-top:16px">根据你自己的实际情况填写，不需要照抄。内容越真实，Phase 3 的审查维度就越贴合你的实际决策框架。</p>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-dim);margin-top:40px;padding-top:20px;border-top:1px solid var(--border)">
+      如有问题欢迎反馈，持续迭代中。
+    </p>
+
+  </main>
+</div>
+
+</body>
+</html>
