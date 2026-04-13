@@ -531,7 +531,7 @@
     <section class="slide active" data-title="封面">
       <div class="slide-head">
         <div class="eyebrow">Internal Tech Talk</div>
-        <div class="slide-no">01 / 10</div>
+        <div class="slide-no">01 / 11</div>
       </div>
       <div class="hero">
         <div class="panel strong">
@@ -572,7 +572,7 @@
     <section class="slide" data-title="为什么需要它">
       <div class="slide-head">
         <div class="eyebrow">Problem Framing</div>
-        <div class="slide-no">02 / 10</div>
+        <div class="slide-no">02 / 11</div>
       </div>
       <div class="two-col">
         <div class="panel strong">
@@ -607,7 +607,7 @@
     <section class="slide" data-title="它是什么">
       <div class="slide-head">
         <div class="eyebrow">Definition</div>
-        <div class="slide-no">03 / 10</div>
+        <div class="slide-no">03 / 11</div>
       </div>
       <div class="hero">
         <div class="panel strong">
@@ -642,7 +642,7 @@
     <section class="slide" data-title="工作机制">
       <div class="slide-head">
         <div class="eyebrow">Mechanism</div>
-        <div class="slide-no">04 / 10</div>
+        <div class="slide-no">04 / 11</div>
       </div>
       <div class="two-col">
         <div class="panel strong">
@@ -693,7 +693,7 @@
     <section class="slide" data-title="示例对比">
       <div class="slide-head">
         <div class="eyebrow">Before / After</div>
-        <div class="slide-no">05 / 10</div>
+        <div class="slide-no">05 / 11</div>
       </div>
       <div class="panel strong">
         <h2>同一句话，不同的处理方式，会导向完全不同的工程成本</h2>
@@ -740,7 +740,7 @@ Phase 2 盲区：
     <section class="slide" data-title="它的作用">
       <div class="slide-head">
         <div class="eyebrow">Impact</div>
-        <div class="slide-no">06 / 10</div>
+        <div class="slide-no">06 / 11</div>
       </div>
       <div class="content-grid">
         <div class="panel strong">
@@ -774,10 +774,51 @@ Phase 2 盲区：
       </div>
     </section>
 
+    <section class="slide" data-title="常见场景">
+      <div class="slide-head">
+        <div class="eyebrow">Use Cases</div>
+        <div class="slide-no">07 / 11</div>
+      </div>
+      <div class="panel strong">
+        <h2>常见使用场景</h2>
+        <p class="lead" style="max-width: 18em;">如果听众觉得机制还是偏抽象，可以直接用这三类场景理解 `/prism` 的价值。它们都来自现有 manual 里的真实示例。</p>
+      </div>
+      <div class="content-grid">
+        <div class="panel">
+          <h3>架构规划</h3>
+          <p>表面需求是“整理文档”，真实目标其实是把一套 v2 思路收束成可验证的 Phase 1 计划。</p>
+          <ul class="dense-list" style="margin-top: 16px;">
+            <li><strong>典型问题</strong>：很容易把“整理材料”误做成目标本身。</li>
+            <li><strong>/prism 的作用</strong>：把任务重新定义成“验证假设与形成执行计划”。</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>功能开发</h3>
+          <p>比如“给推荐系统加个向量召回通道”，关键歧义不在实现，而在它到底是并联增强还是替换原召回。</p>
+          <ul class="dense-list" style="margin-top: 16px;">
+            <li><strong>典型问题</strong>：一句话需求背后藏着完全不同的架构方向。</li>
+            <li><strong>/prism 的作用</strong>：先用 A/B 选项锁定设计意图，再开始写代码。</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>数据处理</h3>
+          <p>比如数据去重、回填、批量更新。manual 里的例子涉及 `89,421` 行 `play_history` 关联更新。</p>
+          <ul class="dense-list" style="margin-top: 16px;">
+            <li><strong>典型问题</strong>：不可逆、影响面大，错一次就是线上事故。</li>
+            <li><strong>/prism 的作用</strong>：把“先看预览、再执行”变成必经步骤。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer">
+        <div>可对外总结成三类：<strong>架构澄清、方向锁定、风险操作</strong>。</div>
+        <div>它适合解决“做什么”不清，而不只是“怎么写”不清。</div>
+      </div>
+    </section>
+
     <section class="slide" data-title="优点">
       <div class="slide-head">
         <div class="eyebrow">Strengths</div>
-        <div class="slide-no">07 / 10</div>
+        <div class="slide-no">08 / 11</div>
       </div>
       <div class="two-col">
         <div class="panel strong">
@@ -813,7 +854,7 @@ Phase 2 盲区：
     <section class="slide" data-title="缺点与代价">
       <div class="slide-head">
         <div class="eyebrow">Trade-offs</div>
-        <div class="slide-no">08 / 10</div>
+        <div class="slide-no">09 / 11</div>
       </div>
       <div class="hero">
         <div class="panel strong">
@@ -853,7 +894,7 @@ Phase 2 盲区：
     <section class="slide" data-title="适用边界">
       <div class="slide-head">
         <div class="eyebrow">Fit / Unfit</div>
-        <div class="slide-no">09 / 10</div>
+        <div class="slide-no">10 / 11</div>
       </div>
       <div class="panel strong">
         <h2>什么时候应该用 /prism，什么时候不该用</h2>
@@ -892,7 +933,7 @@ Phase 2 盲区：
     <section class="slide" data-title="结论与建议">
       <div class="slide-head">
         <div class="eyebrow">Takeaways</div>
-        <div class="slide-no">10 / 10</div>
+        <div class="slide-no">11 / 11</div>
       </div>
       <div class="hero">
         <div class="panel strong">
