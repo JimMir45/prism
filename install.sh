@@ -24,6 +24,21 @@ cp "$REPO_DIR/rules/auto-execute.md" "$RULES_DIR/auto-execute.md"
 echo "  ✓ ~/.claude/rules/auto-execute.md"
 
 echo ""
+echo "▶ 可选规则：assertive-partner.md（让 CC 在所有对话中主动反驳）"
+
+if [ -f "$RULES_DIR/assertive-partner.md" ]; then
+  echo "  ℹ 已存在 assertive-partner.md，跳过（不覆盖）"
+else
+  read -r -p "  是否安装？[y/N] " ans
+  if [[ "$ans" =~ ^[Yy]$ ]]; then
+    cp "$REPO_DIR/rules/assertive-partner.md" "$RULES_DIR/assertive-partner.md"
+    echo "  ✓ ~/.claude/rules/assertive-partner.md"
+  else
+    echo "  跳过。需要时手动 cp rules/assertive-partner.md ~/.claude/rules/"
+  fi
+fi
+
+echo ""
 echo "▶ 检查 user-context.md..."
 
 if [ -f "$RULES_DIR/user-context.md" ]; then
