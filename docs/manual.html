@@ -756,7 +756,7 @@
 
     <!-- Hero -->
     <div class="hero">
-      <div class="hero-badge">Claude Code · Skill</div>
+      <div class="hero-badge">Claude Code · Skill · v4.2</div>
       <h1><span>/prism</span> 使用手册</h1>
       <p class="lead">
         让 AI 在动手之前先想清楚。<br>
@@ -808,7 +808,8 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file required">SKILL.md</span><span class="tag tag-must">必须</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← skill 主文件</span><br>
         &nbsp;&nbsp;<span class="dir">rules/</span><br>
         &nbsp;&nbsp;&nbsp;&nbsp;<span class="file required">auto-execute.md</span><span class="tag tag-must">必须</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← compact 恢复 + 执行规范</span><br>
-        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file optional">user-context.md</span><span class="tag tag-opt">可选</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← 你的画像，让建议更精准</span>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file optional">user-context.md</span><span class="tag tag-opt">可选</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← 你的画像，让建议更精准</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="file optional">assertive-partner.md</span><span class="tag tag-opt">可选</span>&nbsp;&nbsp;<span style="color:var(--text-dim);font-size:12px">← 让 CC 在 /prism 之外也常态化主动反驳</span>
       </div>
 
       <div class="steps">
@@ -888,7 +889,7 @@
           <div class="phase-tag"><span class="phase-n">Phase</span>1</div>
           <div class="phase-body">
             <div class="phase-name">意图透视</div>
-            <div class="phase-desc">表层（说了什么）→ 暗层（没说的假设）→ 深层（真正目标）。有歧义时给 A/B 选项，不替你选。</div>
+            <div class="phase-desc">表层（说了什么）→ 暗层（没说的假设）→ 深层（真正目标）。用<strong>四项评估标准</strong>（根因 / 正确性 / 简单性 / 风险）检视方案；有歧义时给 A/B 选项，不替你选。</div>
           </div>
           <div class="phase-pause"><span class="badge-go">自动</span></div>
         </div>
@@ -896,15 +897,15 @@
           <div class="phase-tag"><span class="phase-n">Phase</span>2</div>
           <div class="phase-body">
             <div class="phase-name">盲区提示</div>
-            <div class="phase-desc">指出你可能没想到的大象——一两句话，不展开。</div>
+            <div class="phase-desc">按 <strong>speak-up 触发原则</strong>（严重性×置信度 &gt; 可逆成本）筛选，<strong>最多 2 条</strong>，每条配一个具体替代。风格类、边际收益类一律过滤。</div>
           </div>
           <div class="phase-pause"><span class="badge-go">自动</span></div>
         </div>
         <div class="phase">
           <div class="phase-tag"><span class="phase-n">Phase</span>3</div>
           <div class="phase-body">
-            <div class="phase-name">任务定义</div>
-            <div class="phase-desc">一句话任务 + 成功标准 + 2-4 个互有张力的审查维度。<strong>等你确认再继续。</strong></div>
+            <div class="phase-name">任务定义 + 质量 Skill 选择</div>
+            <div class="phase-desc">一句话任务 + 成功标准 + <strong>质量 Skill 组合</strong>（tdd-workflow / verification-loop / security-review / database-migrations / e2e-testing 按需勾选） + 2-4 个互有张力的审查维度。<strong>等你确认再继续。</strong></div>
           </div>
           <div class="phase-pause"><span class="badge-pause">等确认</span></div>
         </div>
@@ -919,16 +920,16 @@
         <div class="phase">
           <div class="phase-tag"><span class="phase-n">Phase</span>5</div>
           <div class="phase-body">
-            <div class="phase-name">自主执行</div>
-            <div class="phase-desc">逐步执行，完成一步更新日志，直接进下一步。<strong>非决策步骤不中断不汇报。</strong>遇决策点才暂停。</div>
+            <div class="phase-name">按质量 Skill 组合自主执行</div>
+            <div class="phase-desc">按选中的 skill 顺序执行（migrations → tdd → 实现 → verification → security → e2e）。非决策步骤不中断。<strong>不可逆操作走 flag-don't-block 协议</strong>：一次说清「操作+后果 / 替代 / 继续？」，不重复 flag。</div>
           </div>
           <div class="phase-pause"><span class="badge-go">不中断</span></div>
         </div>
         <div class="phase">
           <div class="phase-tag"><span class="phase-n">Phase</span>6</div>
           <div class="phase-body">
-            <div class="phase-name">对抗审查</div>
-            <div class="phase-desc">仅复杂任务（步骤≥3 或多文件修改）触发。按张力维度并行 subagent 审查，有问题自动修一轮，二审仍有问题暂停等决策。</div>
+            <div class="phase-name">对抗审查（力度由质量 Skill 推导）</div>
+            <div class="phase-desc">选了 tdd → 轻审；纯设计/架构 → 重审并行 subagent；选了 migrations → 跳过。自动修复有<strong>明确边界</strong>：diff ≤ 50 行 / 不新增文件依赖 / 不改测试 / 仅原始文件，超出立即暂停。</div>
           </div>
           <div class="phase-pause"><span class="badge-go">按需</span></div>
         </div>
@@ -1030,9 +1031,13 @@
               <pre style="margin:0;font-size:12px"># Active Plan
 > 由 /prism 生成 | compact 后读取此文件恢复执行
 > created_at: 2026-04-10T03:13:00Z
+> worktree: /Users/jiangyi/LS/Project/instinct
 
 ## 任务
 设计 instinct Phase 1 的 6 周假设验证计划
+
+## 质量 Skill 组合
+（设计任务，无代码变更，留空）
 
 ## 成功标准
 ≥20 条 confirmed Experience，≥3 条 Cognition Pattern，Review 时间 ≤5min/天
@@ -1315,6 +1320,18 @@
           </div>
         </div>
         <div class="faq-item">
+          <div class="faq-q">v4.2 新增的"四项评估标准"和"speak-up 原则"是干什么的？</div>
+          <div class="faq-a">让 Phase 1/2 的"挑刺"有判据。<strong>四项标准</strong>（根因 / 正确性 / 简单性 / 风险）规定从哪些角度审方案，<strong>speak-up 原则</strong>（严重性×置信度 &gt; 可逆成本）规定什么级别的问题才值得打断你。配合 Phase 2 的"最多 2 条"硬上限，避免 AI 一股脑列 5-10 条琐碎建议淹没真问题。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">flag-don't-block 协议和老的"暂停等确认"有什么区别？</div>
+          <div class="faq-a">老的暂停容易变成长篇大论 + 反复劝阻，打断节奏。新协议要求一次说清「操作+后果 / 替代 / 继续？」三段式，伙伴回"继续"后立即执行且不再就同一操作重复 flag。仅当后果是数据丢失/安全泄露/生产事故级别才允许追加一次确认。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">什么时候装 assertive-partner.md？</div>
+          <div class="faq-a">/prism 内置的"主动反驳"只在 /prism 调用时生效。如果希望 CC 在所有日常对话里都保持 staff engineer 视角（看见技术坑会主动指出），就装这个可选规则。它带 5 级语境校准（greenfield / 修 bug / 评审 / 学习 / just-do-it），不会变成话痨。</div>
+        </div>
+        <div class="faq-item">
           <div class="faq-q">Prism 和 planner agent 是什么关系？</div>
           <div class="faq-a">分工明确：/prism 负责"做什么"（意图澄清、成功标准、任务定义），planner agent 负责"怎么做"（工程分解、技术方案）。复杂任务的执行计划，/prism 确认方向后可以调用 planner agent 来生成详细步骤。</div>
         </div>
@@ -1332,7 +1349,7 @@
           <div class="dots"><span></span><span></span><span></span></div>
           <span>~/.claude/skills/prism/SKILL.md</span>
         </div>
-        <pre># Prism — 意图澄清器
+        <pre># Prism — 意图澄清器（v4.2）
 
 原则：Minimax Regret | 形式追随功能 | 做水的形状
 
@@ -1345,69 +1362,99 @@
 
 满足条件时直接回答或执行，附一句"意图清晰，直接执行"。不满足则走完整流程。
 
+## 可调度的质量 Skills
+
+| Skill | 激活条件 |
+|-------|---------|
+| `tdd-workflow` | 写新功能、修 bug、重构、加 API、新建组件 |
+| `verification-loop` | 任何代码变更完成后、PR 前、重构后 |
+| `security-review` | 涉及认证/授权、用户输入、外部 API、密钥、支付、敏感数据 |
+| `database-migrations` | 建表/改表、加减字段或索引、数据迁移/回填 |
+| `e2e-testing` | 涉及关键用户流程、需要验收级别测试 |
+
+## 透视的四项评估标准
+
+1. **根因**：是修真问题，还是给症状贴膏药？
+2. **正确性**：边界、并发、长期演化下还成立吗？
+3. **简单性**：有更简单等效的做法吗？
+4. **风险**：会不会引入 bug、安全洞、维护债？
+
+**何时开口（speak-up 触发原则）**：
+当「后果严重性 × 你对该问题的置信度」**大于**「事后修复的可逆成本」时，
+必须说出来。反之（风格、边际收益、平等替代）保持安静。
+
 ## 完整流程
 
-**Phase 1｜意图透视**：表层（说了什么）→ 暗层（没说的假设）→ 深层（真正目标）。
-字面需求与推断目标有显著差异时给 A/B 选项，禁止替伙伴选。
+**Phase 1｜意图透视**：表层 → 暗层 → 深层。用四项评估标准检视方案；
+方案在某项标准下明显劣于替代时，给 A/B 选项，禁止替伙伴选。
 
-**Phase 2｜盲区**：指出思维盲区中的大象，一两句话。
+**Phase 2｜盲区**：按 speak-up 触发原则筛选——只指出"严重性×置信度"
+高过"可逆成本"的大象，**最多 2 条**。每条一两句话，配一个具体替代。
 
-**Phase 3｜任务定义**：一句话任务 + 成功标准 + 执行路径 + 2-4 个互有张力的审查维度
-（由 CC 主动提出并解释张力关系）。等伙伴确认。
-
-与 planner agent 的分工：Prism 负责"做什么"（意图澄清），planner 负责"怎么做"
-（工程分解）。复杂任务的执行计划可调用 planner agent 生成。
+**Phase 3｜任务定义 + 质量 Skill 选择**：勾选本次需要激活的 skill 组合，
+输出一句话任务 + 成功标准 + 质量 Skill 组合 + 2-4 个互有张力的审查维度。
 
 **Phase 4｜计划持久化**（确认后）：
-
-如果 `active-plan.md` 已存在，先展示旧计划状态，询问伙伴：
-A) 放弃旧计划开始新的  B) 先完成旧计划  C) 取消。
-
-按以下固定格式写入 `{项目根}/.claude/active-plan.md`。
-首次创建时检查 `.gitignore` 是否包含 `.claude/`，如不包含，提示伙伴添加。
 
 ```
 # Active Plan
 > 由 /prism 生成 | compact 后读取此文件恢复执行
 > created_at: {ISO 8601 时间戳}
+> worktree: {当前项目绝对路径，多 worktree 并发校验用}
 ## 任务
 {一句话}
+## 质量 Skill 组合
+{选中的 skill 列表}
 ## 成功标准
 {怎样算完成}
 ## 审查维度
-{对抗审查视角定义，含张力关系说明}
-## 审查触发条件
-{是否需要审查：步骤 >= 3 或涉及多文件修改时触发，否则跳过直接交付}
+{含张力关系说明}
 ## 执行步骤
 - [ ] 步骤1：{描述}
-- [ ] ...
-- [ ] 🔍 对抗审查（如需）
+- [ ] 🔍 审查
 - [ ] 交付
 ## 决策点
 - 步骤X：{什么决策}
 ## 执行日志
-（格式：[YYYY-MM-DDTHH:MMZ] 步骤N 完成：{摘要，≤50字}）
 ```
 
-写入后输出计划摘要，等伙伴确认"开始"后进入执行。
+向后兼容：旧版（无 worktree 字段）仍可读，恢复时缺字段视作匹配通过。
 
-**Phase 5｜自主执行**：按计划逐步执行，用 TodoWrite 跟踪步骤进度。
-每完成一步更新 active-plan.md 执行日志。非决策步骤不停顿不汇报。遇决策点才暂停。
+**Phase 5｜按质量 Skill 组合自主执行**：
 
-**Phase 6｜对抗审查**（仅在计划标记"需要审查"时触发）：
+执行顺序：database-migrations → tdd-workflow → 实现 → verification-loop
+→ security-review → e2e-testing。
 
-按 Phase 3 定义的审查维度启动并行 subagent 审查。维度互有张力。
-- 无 CRITICAL/HIGH → 通过，进入交付
-- 有 CRITICAL/HIGH → 自动修复一轮（修复范围限于计划原始涉及的文件，
-  不引入新依赖，不创建计划外新文件）
-- 二审仍有 CRITICAL/HIGH → 暂停，列出问题，等伙伴决策，不再自动修复
+不可逆操作的 **flag-don't-block 协议**：
+```
+⏸ 即将执行：{操作 + 具体后果}
+建议：{替代或更安全做法}
+继续 / 改用建议 / 取消？
+```
+伙伴回"继续"后执行，不再就同一操作重复 flag。仅当后果是
+「数据丢失 / 安全泄露 / 生产事故」级别时，才允许追加一次确认。
 
-**Phase 7｜交付**：输出摘要，删除 active-plan.md（git commit 本身就是归档）。
+**Phase 6｜按质量 Skill 组合推导审查力度**：
+
+- 选了 tdd-workflow → **轻审**（仅检查接口契约和安全边界）
+- 未选 tdd-workflow（纯设计/架构）→ **重审**（并行 subagent）
+- 选了 database-migrations → **跳过**（人工确认 + 变更日志已是质量门禁）
+
+重审有 CRITICAL/HIGH → 自动修复一轮，**修复必须满足**：
+- diff ≤ 50 行
+- 不新增文件、不新增依赖
+- 不修改测试
+- 仅限审查指出的原始文件
+超出任一边界 → 立即暂停。二审仍有问题 → 暂停等决策。
+
+**Phase 7｜交付**：输出摘要，删除 active-plan.md。
 
 ## 约束
 - Phase 5 不中断：非决策步骤直接干
-- 审查维度必须互有张力
-- 伙伴画像由 `~/.claude/rules/user-context.md` 自动提供</pre>
+- 质量 Skill 组合在 Phase 3 选定一次，Phase 5、6 直接读取
+- 不可逆操作一律按 flag-don't-block 协议暂停
+- 伙伴画像由 `~/.claude/rules/user-context.md` 自动提供
+- 想常态化"主动反驳"能力，可选装 `rules/assertive-partner.md`</pre>
       </div>
     </div>
 
@@ -1430,11 +1477,15 @@ A) 放弃旧计划开始新的  B) 先完成旧计划  C) 取消。
 
 如果存在且有未完成步骤（未勾选的 `- [ ]`）：
 1. 读取该文件
-2. 输出一行恢复提示：
+2. **校验 worktree**：若计划含 `worktree:` 字段且与当前工作目录不一致，
+   输出"此计划属于 {worktree}，当前位于 {pwd}，可能是另一个 worktree
+   的进行中任务，是否切换 / 在此继续 / 忽略？"等伙伴决策；
+   字段缺失视作匹配通过（向后兼容）
+3. 输出一行恢复提示：
    "检测到未完成计划：{任务一句话}，创建于 {created_at}，
    {N}/{总数} 步已完成，即将从步骤 {下一步编号} 继续"
-3. **等待伙伴确认后才继续执行**（输入任意内容即视为确认）
-4. 超过 24 小时未更新的计划文件，提示伙伴：
+4. **等待伙伴确认后才继续执行**（输入任意内容即视为确认）
+5. 超过 24 小时未更新的计划文件，提示伙伴：
    "此计划已超过 24 小时未更新，建议重新确认整个计划"
 
 如果不存在或所有步骤已完成：正常交互，不做特殊处理。
@@ -1470,7 +1521,8 @@ A) 放弃旧计划开始新的  B) 先完成旧计划  C) 取消。
 - 由 `/prism` skill 的 Phase 4 创建
 - 执行完毕后删除（git commit 本身就是归档）
 - 同一项目同一时间只允许一个 active-plan
-- `.claude/` 目录应加入 `.gitignore`</pre>
+- `.claude/` 目录应加入 `.gitignore`
+- `worktree:` 字段记录创建时的绝对路径，多 worktree 并发时用于校验</pre>
       </div>
     </div>
 

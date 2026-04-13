@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>/prism 内部分享 deck</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-soft: #111827;
+      --panel: rgba(14, 22, 35, 0.78);
+      --panel-strong: rgba(10, 17, 28, 0.92);
+      --line: rgba(128, 154, 194, 0.22);
+      --text: #edf3ff;
+      --muted: #9fb0cb;
+      --dim: #6f819f;
+      --gold: #f0b35f;
+      --cyan: #67d8db;
+      --mint: #99f6c8;
+      --rose: #ff8a8a;
+      --violet: #b7a3ff;
+      --shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(103, 216, 219, 0.14), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(240, 179, 95, 0.14), transparent 24%),
+        radial-gradient(circle at 48% 82%, rgba(183, 163, 255, 0.12), transparent 30%),
+        linear-gradient(145deg, #09101b 0%, #0d1117 48%, #101827 100%);
+      color: var(--text);
+      font-family: "Avenir Next", "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      overflow: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      border-radius: 999px;
+      filter: blur(90px);
+      pointer-events: none;
+      opacity: 0.42;
+      z-index: 0;
+    }
+
+    body::before {
+      width: 280px;
+      height: 280px;
+      left: -60px;
+      top: 8vh;
+      background: rgba(103, 216, 219, 0.22);
+    }
+
+    body::after {
+      width: 340px;
+      height: 340px;
+      right: -80px;
+      bottom: 10vh;
+      background: rgba(240, 179, 95, 0.16);
+    }
+
+    .deck {
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide {
+      display: none;
+      min-height: 100vh;
+      padding: 56px 64px 110px;
+    }
+
+    .slide.active {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 28px;
+      overflow: auto;
+    }
+
+    .slide-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      border: 1px solid rgba(240, 179, 95, 0.28);
+      border-radius: 999px;
+      background: rgba(240, 179, 95, 0.09);
+      color: var(--gold);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .slide-no {
+      font-size: 14px;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .hero,
+    .content-grid,
+    .two-col,
+    .full-col {
+      display: grid;
+      gap: 24px;
+    }
+
+    .hero {
+      grid-template-columns: 1.35fr 0.9fr;
+      align-items: stretch;
+    }
+
+    .content-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .two-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .full-col {
+      grid-template-columns: 1fr;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .panel.strong {
+      background: var(--panel-strong);
+    }
+
+    .kicker {
+      color: var(--cyan);
+      font-size: 14px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    h1 {
+      font-size: clamp(44px, 7vw, 78px);
+      line-height: 0.98;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: clamp(34px, 4.6vw, 56px);
+      line-height: 1.05;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    p,
+    li {
+      font-size: 19px;
+      line-height: 1.65;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .lead {
+      font-size: 22px;
+      color: var(--text);
+      max-width: 14.5em;
+      line-height: 1.5;
+    }
+
+    .accent {
+      color: var(--gold);
+    }
+
+    .accent-cyan {
+      color: var(--cyan);
+    }
+
+    .accent-mint {
+      color: var(--mint);
+    }
+
+    .chip-row,
+    .metric-row,
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .chip,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .tag.good {
+      color: var(--mint);
+      border-color: rgba(153, 246, 200, 0.22);
+      background: rgba(153, 246, 200, 0.08);
+    }
+
+    .tag.warn {
+      color: var(--gold);
+      border-color: rgba(240, 179, 95, 0.24);
+      background: rgba(240, 179, 95, 0.08);
+    }
+
+    .tag.risk {
+      color: var(--rose);
+      border-color: rgba(255, 138, 138, 0.24);
+      background: rgba(255, 138, 138, 0.08);
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 150px;
+      padding: 18px 18px 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 34px;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 6px;
+      font-family: "Iowan Old Style", "Palatino Linotype", serif;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .list,
+    .dense-list,
+    .timeline {
+      display: grid;
+      gap: 14px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .dense-list {
+      gap: 10px;
+    }
+
+    .list li,
+    .dense-list li,
+    .timeline li {
+      position: relative;
+      padding-left: 22px;
+    }
+
+    .list li::before,
+    .dense-list li::before,
+    .timeline li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.72em;
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--gold), var(--cyan));
+      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.03);
+    }
+
+    .timeline li {
+      padding: 16px 0 16px 30px;
+      border-left: 1px solid rgba(103, 216, 219, 0.16);
+    }
+
+    .timeline li::before {
+      left: -5px;
+      top: 24px;
+      box-shadow: 0 0 0 6px rgba(12, 19, 31, 1);
+    }
+
+    .timeline strong,
+    .list strong,
+    .dense-list strong {
+      color: var(--text);
+    }
+
+    .quote-box,
+    .code-box,
+    .note-box {
+      border-radius: 22px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .quote-box {
+      background:
+        linear-gradient(160deg, rgba(103, 216, 219, 0.1), rgba(255, 255, 255, 0.02)),
+        rgba(255, 255, 255, 0.03);
+    }
+
+    .code-box {
+      font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+      font-size: 15px;
+      line-height: 1.75;
+      color: #c7d6ee;
+      white-space: pre-wrap;
+    }
+
+    .note-box {
+      border-color: rgba(240, 179, 95, 0.2);
+      background: rgba(240, 179, 95, 0.06);
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .comparison .panel {
+      min-height: 100%;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      gap: 1px;
+      background: var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .matrix > div {
+      padding: 18px 20px;
+      background: rgba(10, 17, 28, 0.88);
+    }
+
+    .matrix .head {
+      color: var(--text);
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .matrix .yes {
+      color: var(--mint);
+    }
+
+    .matrix .no {
+      color: var(--rose);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      color: var(--dim);
+      font-size: 14px;
+    }
+
+    .footer strong {
+      color: var(--text);
+    }
+
+    .deck-nav {
+      position: fixed;
+      left: 32px;
+      right: 32px;
+      bottom: 22px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(128, 154, 194, 0.2);
+      background: rgba(9, 14, 24, 0.82);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(16px);
+    }
+
+    .deck-nav button {
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .deck-nav button:hover {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .deck-nav button:disabled {
+      opacity: 0.42;
+      cursor: default;
+      transform: none;
+    }
+
+    .progress {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--gold), var(--cyan), var(--violet));
+      transition: width 0.24s ease;
+    }
+
+    .nav-meta {
+      min-width: 220px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: right;
+    }
+
+    .small {
+      font-size: 15px;
+      color: var(--dim);
+    }
+
+    .tight {
+      max-width: 11.5em;
+    }
+
+    @media (max-width: 1100px) {
+      .slide {
+        padding: 42px 28px 108px;
+      }
+
+      .hero,
+      .content-grid,
+      .two-col,
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+
+      p,
+      li {
+        font-size: 17px;
+      }
+
+      .matrix {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-meta {
+        min-width: 0;
+      }
+    }
+
+    @media print {
+      html,
+      body {
+        overflow: visible;
+        background: #0d1117;
+      }
+
+      body::before,
+      body::after,
+      .deck-nav {
+        display: none;
+      }
+
+      .slide,
+      .slide.active {
+        display: grid;
+        page-break-after: always;
+        min-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <section class="slide active" data-title="封面">
+      <div class="slide-head">
+        <div class="eyebrow">Internal Tech Talk</div>
+        <div class="slide-no">01 / 10</div>
+      </div>
+      <div class="hero">
+        <div class="panel strong">
+          <div class="kicker">/prism for AI builders</div>
+          <h1>让编码 Agent 在动手前，<span class="accent">先把问题看清楚</span></h1>
+          <p class="lead">这不是另一个“更会写代码”的 skill，而是一个给 <span class="accent-cyan">AI 应用开发流程</span>加上的 preflight layer：先校准意图，再生成计划，再执行。</p>
+          <div class="chip-row" style="margin-top: 22px;">
+            <div class="chip">面向对象：AI 应用开发团队</div>
+            <div class="chip">载体：Claude Code skill</div>
+            <div class="chip">核心承诺：减少跑偏和返工</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>这场分享回答三个问题</h3>
+          <ul class="list">
+            <li><strong>意图</strong>：它到底想纠正 AI coding workflow 的什么问题？</li>
+            <li><strong>作用</strong>：它如何改变任务定义、执行和交付？</li>
+            <li><strong>边界</strong>：它什么时候很值，什么时候反而拖慢？</li>
+          </ul>
+          <div class="metric-row" style="margin-top: 24px;">
+            <div class="stat">
+              <strong>7</strong>
+              <span>个 phase，把“模糊想法”拉直到“可恢复执行”</span>
+            </div>
+            <div class="stat">
+              <strong>1</strong>
+              <span>个核心文件：`.claude/active-plan.md`</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div>项目定位：<strong>意图澄清器 + 计划持久化器 + 风险闸门</strong></div>
+        <div>建议演讲时长：15-20 分钟</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="为什么需要它">
+      <div class="slide-head">
+        <div class="eyebrow">Problem Framing</div>
+        <div class="slide-no">02 / 10</div>
+      </div>
+      <div class="two-col">
+        <div class="panel strong">
+          <h2>AI 应用开发里，真正昂贵的不是写代码，而是 <span class="accent">写错代码</span></h2>
+          <p>团队做 AI 产品时，经常不是“不会实现”，而是过早实现了一个错误假设：用户场景不对、权限模型没定义、评估标准没对齐、调用外部资源的风险没说清。</p>
+          <div class="tag-row" style="margin-top: 20px;">
+            <div class="tag warn">需求语义太短</div>
+            <div class="tag warn">方案空间太大</div>
+            <div class="tag risk">误操作代价高</div>
+            <div class="tag">上下文经常丢</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>它瞄准的四个常见失败模式</h3>
+          <ul class="list">
+            <li><strong>字面执行</strong>：Agent 按表述写，不按真实目标做。</li>
+            <li><strong>方案抢跑</strong>：还没澄清，就已经选了技术路线和数据模型。</li>
+            <li><strong>长任务失忆</strong>：会话 compact 后，执行上下文断裂。</li>
+            <li><strong>自主过头</strong>：危险操作发生前，没有一个明确暂停点。</li>
+          </ul>
+          <div class="note-box" style="margin-top: 22px;">
+            <p><strong>一句话理解：</strong>/prism 不是提升单次生成质量，而是减少整个任务生命周期中的“方向性错误”。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div>适合 AI builder 的原因：我们经常处理 <strong>高不确定性 + 高耦合</strong> 的任务。</div>
+        <div>问题不是 token 不够，是前置判断不够。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="它是什么">
+      <div class="slide-head">
+        <div class="eyebrow">Definition</div>
+        <div class="slide-no">03 / 10</div>
+      </div>
+      <div class="hero">
+        <div class="panel strong">
+          <h2>/prism 是什么</h2>
+          <p class="lead tight">一个给 Claude Code 用的 slash command skill，在执行前强制做一次 <span class="accent-cyan">意图透视</span>，并把后续计划写入可恢复文件。</p>
+          <div class="code-box" style="margin-top: 22px;">/prism 我要做一个用户管理后台</div>
+          <div class="quote-box" style="margin-top: 22px;">
+            <p>目标不是让模型“更像人”，而是让它在面对模糊任务时，先像一个谨慎的 staff engineer。</p>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>它不是什么</h3>
+          <ul class="list">
+            <li>不是通用 agent 框架，也不替代现有 coding workflow。</li>
+            <li>不是知识库或 RAG，重点不在补信息，而在补 <strong>决策前置</strong>。</li>
+            <li>不是为了所有请求都更慢更严谨，而是对 <strong>模糊且代价高</strong> 的任务加一道闸门。</li>
+          </ul>
+          <h3 style="margin-top: 24px;">核心输出</h3>
+          <ul class="dense-list">
+            <li><strong>结构化任务定义</strong>：一句话任务、成功标准、审查维度。</li>
+            <li><strong>执行计划</strong>：写到 `.claude/active-plan.md`，支持跨 session 恢复。</li>
+            <li><strong>暂停协议</strong>：危险操作前强制确认。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer">
+        <div>本质：把“prompt”升级成一个 <strong>任务操作协议</strong>。</div>
+        <div>对团队价值：可复用、可解释、可恢复。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="工作机制">
+      <div class="slide-head">
+        <div class="eyebrow">Mechanism</div>
+        <div class="slide-no">04 / 10</div>
+      </div>
+      <div class="two-col">
+        <div class="panel strong">
+          <h2>7 个 Phase，把模糊任务转成可控执行</h2>
+          <ul class="timeline">
+            <li><strong>Phase 1</strong> 意图透视：表层、暗层、深层，必要时给 A/B 选项。</li>
+            <li><strong>Phase 2</strong> 盲区提示：只提高严重度且高置信度的问题。</li>
+            <li><strong>Phase 3</strong> 任务定义：明确成功标准、审查维度、要激活的质量 skill。</li>
+            <li><strong>Phase 4</strong> 计划持久化：写入 `active-plan.md`。</li>
+            <li><strong>Phase 5</strong> 自主执行：非决策步骤不停顿。</li>
+            <li><strong>Phase 6</strong> 对抗审查：根据任务类型决定轻审/重审。</li>
+            <li><strong>Phase 7</strong> 交付：总结并清理计划文件。</li>
+          </ul>
+        </div>
+        <div class="content-grid">
+          <div class="panel">
+            <h3>前置对齐</h3>
+            <p>先判断“用户真正要什么”，而不是顺着第一个措辞直接开工。</p>
+          </div>
+          <div class="panel">
+            <h3>计划留痕</h3>
+            <p>把中间判断沉淀成文件，而不是只存在上下文窗口里。</p>
+          </div>
+          <div class="panel">
+            <h3>自主但有限</h3>
+            <p>允许连续执行，但把不可逆动作集中到可确认的停点。</p>
+          </div>
+          <div class="panel">
+            <h3>轻重审查可调</h3>
+            <p>有测试的任务轻审，没有测试或偏架构的任务重审。</p>
+          </div>
+          <div class="panel">
+            <h3>兼容技能编排</h3>
+            <p>可根据任务激活 TDD、verification、security-review 等子技能。</p>
+          </div>
+          <div class="panel">
+            <h3>有快速通道</h3>
+            <p>纯查询或无副作用任务可直接执行，避免一刀切过度流程化。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div>关键设计点：<strong>不是每次都慢，而是在该慢的时候慢下来</strong>。</div>
+        <div>这和 agent autonomy 并不冲突。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="示例对比">
+      <div class="slide-head">
+        <div class="eyebrow">Before / After</div>
+        <div class="slide-no">05 / 10</div>
+      </div>
+      <div class="panel strong">
+        <h2>同一句话，不同的处理方式，会导向完全不同的工程成本</h2>
+      </div>
+      <div class="comparison">
+        <div class="panel">
+          <div class="kicker">Vanilla Claude Code</div>
+          <h3>先做，再发现做偏</h3>
+          <div class="code-box">“做一个用户管理后台”
+
+好的，我来用 React + Express 搭一个后台，
+先建 users 表、角色表、登录页和 CRUD 页面……</div>
+          <ul class="dense-list" style="margin-top: 20px;">
+            <li>默认把“后台”理解成一个完整新系统。</li>
+            <li>默认把“管理”理解成 CRUD，不问审计和权限矩阵。</li>
+            <li>技术选型已经落地，后续纠偏成本陡增。</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <div class="kicker">With /prism</div>
+          <h3>先定义问题，再决定怎么做</h3>
+          <div class="code-box">Phase 1 透视到三种可能：
+A. 内部运维后台
+B. 多租户 SaaS 管理台
+C. 现有 App 的 admin 入口
+
+Phase 2 盲区：
+“管理”是否包含审批、审计、权限矩阵？
+
+请先选择 A/B/C 并说明权限模型。</div>
+          <ul class="dense-list" style="margin-top: 20px;">
+            <li>先缩小问题空间，避免提前绑定方案。</li>
+            <li>把真正影响架构的变量拉到台前。</li>
+            <li>只有当目标清晰后，执行才有意义。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer">
+        <div>对 AI app 团队最有价值的点：<strong>它处理的是 ambiguity，不只是 syntax。</strong></div>
+        <div>省下的是返工时间，不只是 prompt token。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="它的作用">
+      <div class="slide-head">
+        <div class="eyebrow">Impact</div>
+        <div class="slide-no">06 / 10</div>
+      </div>
+      <div class="content-grid">
+        <div class="panel strong">
+          <h3>1. 把“需求沟通”嵌进命令行</h3>
+          <p>它让 slash command 不再只是一个触发器，而是一个要求先完成任务定义的协议入口。</p>
+        </div>
+        <div class="panel">
+          <h3>2. 把模糊成本显性化</h3>
+          <p>通过 A/B 选项、盲区提醒和审查维度，让隐性分歧尽量在动手前暴露。</p>
+        </div>
+        <div class="panel">
+          <h3>3. 把长任务从上下文里“落盘”</h3>
+          <p>`active-plan.md` 让 compact 不再等于失忆，特别适合长链路实现和多人接力。</p>
+        </div>
+        <div class="panel">
+          <h3>4. 把 agent autonomy 收束到安全范围</h3>
+          <p>允许连续推进，但在危险动作前统一使用暂停协议，而不是随机发挥。</p>
+        </div>
+        <div class="panel">
+          <h3>5. 把质量要求前置编排</h3>
+          <p>把 TDD、verification、security-review 等质量动作纳入任务定义，而非收尾补救。</p>
+        </div>
+        <div class="panel">
+          <h3>6. 让“像资深工程师”可复制</h3>
+          <p>它把 staff engineer 的判断框架写成了可执行 prompt，不依赖单个使用者的经验密度。</p>
+        </div>
+      </div>
+      <div class="footer">
+        <div>关键词：<strong>对齐、留痕、护栏</strong>。</div>
+        <div>适合作为 AI coding 的上层控制面。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="优点">
+      <div class="slide-head">
+        <div class="eyebrow">Strengths</div>
+        <div class="slide-no">07 / 10</div>
+      </div>
+      <div class="two-col">
+        <div class="panel strong">
+          <h2>这个 skill 的主要优点</h2>
+          <ul class="list">
+            <li><strong>减少大方向跑偏</strong>：在方案空间很大时，先问关键分叉。</li>
+            <li><strong>风险意识强</strong>：不可逆操作被明确收束，而不是靠使用者记得提醒。</li>
+            <li><strong>长任务稳定</strong>：计划文件让任务能恢复、追踪、切换 worktree 校验。</li>
+            <li><strong>有工程纪律</strong>：成功标准、质量 skill、审查维度都在执行前定义。</li>
+            <li><strong>适合团队复制</strong>：比“大家多想想”更可操作，因为它已经把思路模板化了。</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>对 AI 应用开发团队尤其有用的场景</h3>
+          <ul class="dense-list">
+            <li><strong>产品探索期</strong>：一句话需求背后有多条可行路线。</li>
+            <li><strong>代理系统改造</strong>：调度、记忆、工具边界常常没有一次说透。</li>
+            <li><strong>数据和权限相关任务</strong>：一旦误解，返工成本高。</li>
+            <li><strong>需要多人串接的长任务</strong>：计划落盘后更容易协作和交接。</li>
+            <li><strong>希望提升 agent 可靠性</strong>：不是只追求快，而是追求少犯高成本错误。</li>
+          </ul>
+          <div class="note-box" style="margin-top: 22px;">
+            <p><strong>本质收益：</strong>它用少量前置摩擦，换来更低的后置返工和更少的隐性风险。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div>优点不是“更万能”，而是 <strong>更不容易在重要任务上做错第一步</strong>。</div>
+        <div>这对 AI 产品研发很关键。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="缺点与代价">
+      <div class="slide-head">
+        <div class="eyebrow">Trade-offs</div>
+        <div class="slide-no">08 / 10</div>
+      </div>
+      <div class="hero">
+        <div class="panel strong">
+          <h2>代价是真实存在的，不能把它讲成银弹</h2>
+          <ul class="list">
+            <li><strong>启动更慢</strong>：意图已足够清晰时，完整流程会增加额外回合。</li>
+            <li><strong>依赖 prompt 纪律</strong>：它不是编译器，行为稳定性仍受模型和上下文影响。</li>
+            <li><strong>生态绑定明显</strong>：当前是为 Claude Code 的 skill / rule 机制设计的。</li>
+            <li><strong>有时会“过度谨慎”</strong>：如果团队偏好快试快错，可能觉得它挡手。</li>
+            <li><strong>维护成本不为零</strong>：SKILL、rules、evals 都需要持续演进和回归验证。</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>需要诚实强调的限制</h3>
+          <div class="tag-row" style="margin-bottom: 18px;">
+            <div class="tag risk">不能替代真实产品判断</div>
+            <div class="tag risk">不能保证每次都问到关键问题</div>
+            <div class="tag warn">不能自动变成团队共识</div>
+          </div>
+          <div class="quote-box">
+            <p>如果组织本身没有意图澄清习惯，只装一个 skill，不会神奇地产生工程判断力。它更像一个放大器：把好的工程习惯制度化，也把坏的输入暴露得更早。</p>
+          </div>
+          <h3 style="margin-top: 22px;">所以它最适合的组织前提</h3>
+          <ul class="dense-list">
+            <li>愿意为高价值任务多花 1-2 个回合澄清。</li>
+            <li>认可“先定义成功标准，再执行”的协作方式。</li>
+            <li>把 agent 当工程协作者，而不是纯代码生成器。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer">
+        <div>讲优点时一定同步讲代价，否则团队预期会失真。</div>
+        <div>它优化的是 <strong>可靠性</strong>，不是极限吞吐。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="适用边界">
+      <div class="slide-head">
+        <div class="eyebrow">Fit / Unfit</div>
+        <div class="slide-no">09 / 10</div>
+      </div>
+      <div class="panel strong">
+        <h2>什么时候应该用 /prism，什么时候不该用</h2>
+      </div>
+      <div class="matrix">
+        <div class="head">任务类型</div>
+        <div class="head">适合用 /prism</div>
+        <div class="head">不必强上 /prism</div>
+
+        <div>需求模糊、方案空间大</div>
+        <div class="yes">是。先澄清分叉点，收益很高。</div>
+        <div class="no">否。直接执行容易跑偏。</div>
+
+        <div>涉及数据迁移、权限、安全、外部副作用</div>
+        <div class="yes">是。暂停协议和风险提示很值。</div>
+        <div class="no">否。无护栏的自主执行风险太高。</div>
+
+        <div>跨 session 的长任务</div>
+        <div class="yes">是。计划落盘有显著价值。</div>
+        <div class="no">否。纯靠对话上下文不稳。</div>
+
+        <div>只读查询、轻量解释、一次性小修</div>
+        <div class="no">通常没必要。快速通道更合适。</div>
+        <div class="yes">是。不要为了流程而流程。</div>
+
+        <div>团队已经有非常成熟的 spec-first 流程</div>
+        <div class="warn">可作为轻量补充，但不是唯一入口。</div>
+        <div class="yes">已有机制足够时，不必重复建设。</div>
+      </div>
+      <div class="footer">
+        <div>推荐定位：<strong>高歧义 / 高代价任务的默认入口</strong>。</div>
+        <div>不推荐定位：所有事情都先过一遍。</div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="结论与建议">
+      <div class="slide-head">
+        <div class="eyebrow">Takeaways</div>
+        <div class="slide-no">10 / 10</div>
+      </div>
+      <div class="hero">
+        <div class="panel strong">
+          <h2>结论</h2>
+          <p class="lead">/prism 的真正价值，不是让模型“更聪明”，而是让团队在使用 coding agent 时，拥有一个更像工程系统的 <span class="accent">前置决策层</span>。</p>
+          <ul class="list" style="margin-top: 24px;">
+            <li>它解决的是 <strong>任务定义不清</strong>、<strong>长任务失忆</strong>、<strong>危险动作无闸门</strong>。</li>
+            <li>它最适合 AI 应用开发中那些模糊、昂贵、耦合高的任务。</li>
+            <li>它的缺点也明确：增加前置摩擦，不适合一切场景。</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>如果团队要试用，我会这样落地</h3>
+          <ul class="dense-list">
+            <li><strong>先小范围试点</strong>：从数据、权限、长链路任务开始。</li>
+            <li><strong>保留快速通道</strong>：小修小补不要强行走全流程。</li>
+            <li><strong>配合 evals</strong>：改 `SKILL.md` 后跑行为回归，防止风格漂移。</li>
+            <li><strong>把它当 protocol，不只是 prompt</strong>：重点是组织协作方式的改变。</li>
+          </ul>
+          <div class="note-box" style="margin-top: 22px;">
+            <p><strong>最后一句：</strong>对于 AI 编程，真正稀缺的不是“更快写出代码”，而是“更早知道不该写什么代码”。</p>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div>可直接打开演示：`docs/prism-team-deck.html`</div>
+        <div>键盘支持：← → Space Home End</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="deck-nav" aria-label="Slide navigation">
+    <button id="prevBtn" type="button">上一页</button>
+    <div class="progress" aria-hidden="true">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+    <button id="nextBtn" type="button">下一页</button>
+    <div id="navMeta" class="nav-meta">1 / 10 · 封面</div>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const progressBar = document.getElementById("progressBar");
+    const navMeta = document.getElementById("navMeta");
+    let current = 0;
+
+    function renderSlide(index) {
+      current = Math.max(0, Math.min(index, slides.length - 1));
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === current);
+      });
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+      navMeta.textContent = `${current + 1} / ${slides.length} · ${slides[current].dataset.title}`;
+      window.location.hash = `slide-${current + 1}`;
+    }
+
+    prevBtn.addEventListener("click", () => renderSlide(current - 1));
+    nextBtn.addEventListener("click", () => renderSlide(current + 1));
+
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+        event.preventDefault();
+        renderSlide(current + 1);
+      }
+      if (["ArrowLeft", "PageUp"].includes(event.key)) {
+        event.preventDefault();
+        renderSlide(current - 1);
+      }
+      if (event.key === "Home") {
+        renderSlide(0);
+      }
+      if (event.key === "End") {
+        renderSlide(slides.length - 1);
+      }
+    });
+
+    const match = window.location.hash.match(/slide-(\d+)/);
+    if (match) {
+      renderSlide(Number(match[1]) - 1);
+    } else {
+      renderSlide(0);
+    }
+  </script>
+</body>
+</html>
